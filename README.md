@@ -1,12 +1,8 @@
 # DeepMS
 
-This repository provides source code for the paper:
-
-**DeepMS: A Data-Driven Approach to Machining Process Sequencing Using Transformers**
+This repository provides source code for our paper [**DeepMS: A Data-Driven Approach to Machining Process Sequencing Using Transformers**](https://doi.org/10.1016/j.jmsy.2025.07.022) published in Journal of Manufacturing Systems, 2025.
 
 *Jaime Maqueda, et al.*
-
-Published in Journal of Manufacturing Systems, 2025. [DOI: 10.1016/j.jmsy.2025.07.022](https://doi.org/10.1016/j.jmsy.2025.07.022)
 
 <p align="center">
   <img src='teaser.png' width=600>
@@ -63,9 +59,9 @@ The dataset contains:
 
 ## Usage
 
-### Training
+### Training and Processing Pipeline
 
-The training process follows a specific order due to component dependencies:
+The DeepMS framework requires a specific training and processing sequence due to component dependencies:
 
 #### 1. Train Voxel Autoencoder (VoxAE)
 
@@ -83,9 +79,19 @@ Key parameters:
 - `--lr`: Learning rate (default: 6e-5)
 - `-g`: GPU ID(s) to use
 
-#### 2. Train Sequence Autoencoder (SeqAE)
+#### 2. Test Voxel Autoencoder to Update Dataset
 
-After training VoxAE, train the sequence autoencoder which handles operation sequence prediction:
+After training VoxAE, run the testing script to reconstruct the dataset for the next stage:
+
+```bash
+python test_VoxAE.py --exp_name train_vox_1 --ckpt latest -m rec -g 0
+```
+
+This step encodes the intermediate machining steps into latent representations needed for sequence training.
+
+#### 3. Train Sequence Autoencoder (SeqAE)
+
+With the reconstructed dataset from VoxAE, train the sequence autoencoder:
 
 ```bash
 python train_SeqAE.py --exp_name train_seq_1 --path_vox_ae_cfg train_log/train_vox_1/config.txt -g 0
@@ -97,7 +103,17 @@ Key parameters:
 - `--nr_epochs`: Number of training epochs (default: 200)
 - `--lr`: Learning rate (default: 1e-3)
 
-#### 3. Train Part Encoder (PartE)
+#### 4. Test Sequence Autoencoder to Update Dataset
+
+After training SeqAE, run the testing script to reconstruct the sequence dataset:
+
+```bash
+python test_SeqAE.py --exp_name train_seq_1 --ckpt latest -m rec -g 0
+```
+
+This step prepares the data for the final Part Encoder training.
+
+#### 5. Train Part Encoder (PartE)
 
 Finally, train the part encoder which directly maps final parts to operation sequences:
 
@@ -112,30 +128,30 @@ Key parameters:
 - `--nr_epochs`: Number of training epochs (default: 10)
 - `--lr`: Learning rate (default: 1e-3)
 
-### Testing
+### Testing Final Models
 
-To evaluate the trained models:
+Once the complete pipeline is trained, you can evaluate each component:
 
-#### 1. Test Voxel Autoencoder
+#### Test Voxel Autoencoder
 
 ```bash
-python test_VoxAE.py --exp_name train_vox_1 --ckpt best -m rec -g 0
+python test_VoxAE.py --exp_name train_vox_1 --ckpt latest -m rec -g 0
 ```
 
-#### 2. Test Sequence Autoencoder
+#### Test Sequence Autoencoder
 
 ```bash
-python test_SeqAE.py --exp_name train_seq_1 --ckpt best -m rec -g 0
+python test_SeqAE.py --exp_name train_seq_1 --ckpt latest -m rec -g 0
 ```
 
-#### 3. Test Part Encoder
+#### Test Part Encoder
 
 ```bash
-python test_PartE.py --exp_name train_fpenc_1 --ckpt best -m rec_data -g 0
+python test_PartE.py --exp_name train_fpenc_1 --ckpt latest -m rec_data -g 0
 ```
 
 Key parameters for testing:
-- `--ckpt`: Checkpoint to load (e.g., 'best', 'latest', or specific number)
+- `--ckpt`: Checkpoint to load (default: 'latest', can also be a specific number)
 - `-m`: Mode ('rec' for reconstruction, 'enc' for encoding, 'dec' for decoding)
 - `-g`: GPU ID to use
 
