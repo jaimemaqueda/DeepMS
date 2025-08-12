@@ -205,6 +205,24 @@ The DeepMS framework uses:
 
 Key hyperparameters can be configured in the respective configuration files in the `config/` directory.
 
+## Citation
+
+Please cite our work if you find it useful:
+
+```bibtex
+@article{MAQUEDA2025947,
+  title = {DeepMS: A data-driven approach to machining process sequencing using transformers},
+  journal = {Journal of Manufacturing Systems},
+  volume = {82},
+  pages = {947-963},
+  year = {2025},
+  issn = {0278-6125},
+  doi = {https://doi.org/10.1016/j.jmsy.2025.07.022},
+  url = {https://www.sciencedirect.com/science/article/pii/S0278612525001979},
+  author = {Jaime Maqueda and David W. Rosen and Shreyes N. Melkote}
+}
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
